@@ -1,0 +1,27 @@
+<html>
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+        <!--imports-->
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+        <script type="text/javascript" src="jquery.parse.js"></script>
+        
+        <script type="text/javascript">
+            console.log("app started");
+        </script>
+    </head>
+
+    <body>
+        <script type="text/javascript">
+            $.parse.init({
+            app_id : "eL5Zl4jRY6fUD3PcmbC6yObE3gSmdwfxShYmkOPi",
+            rest_key : "rbNCJ1Mc10EbtICDHCIQmE6gxkeO4NCDXCLDLP0y"    
+            });
+            
+            $.parse.get("quotes", function(json){
+                console.log(json)
+                });
+            
+            //$.parse.get("Quotes");
+        </script>
+    </body>
+</html>
