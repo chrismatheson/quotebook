@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title> </title>
+        <!--imports-->
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+        <script type="text/javascript" src="jquery.parse.js"></script>
+        
+        <script type="text/javascript">
+            console.log("app started");
+            
+            if (navigator.geolocation)
+            {
+                //navigator.geolocation.getCurrentPosition($(#quoteLocation).value);
+            }
+            
+            $(document).ready(function(){
+                $('input').focus(function() {
+                  this.value = "";
+                  //no longer need to empty input
+                  $(this).unbind('focus');
+                });
+                
+                $.parse.init({
+                    app_id : "eL5Zl4jRY6fUD3PcmbC6yObE3gSmdwfxShYmkOPi",
+                    rest_key : "rbNCJ1Mc10EbtICDHCIQmE6gxkeO4NCDXCLDLP0y"    
+                });
+            });
+            // define part object to go into Parse
+            function part(){
+                    this.name = "";
+                    this.said = "";
+                }
+            
+            function addPart(){
+               $(".quote").append('<li class="quotePart" style="list-style-type: none"><input type="text" Value="Who"></input><input type="text" Value="Said What?"></input></li>')
+            }
+            
+            function addQuote(){
+                console.log("adding quote to Parse DB");    
+                
+                var quoteObject = new Array();
+                
+                $(".quote").find(".quotePart").each(function(){
+                    //for each quotePart
+                    var thisPart = new part();
+                    quoteObject.push(thisPart);
+                    thisPart.name = $(this).find("input:nth(0)").val();
+                    thisPart.said = $(this).find("input:nth(1)").val();
+                                                        
+                });
+                
+                $.parse.post('Quotes',{ parts:quoteObject}, function(json){console.log(json);},function(json){console.log(json);});
+            }
+        </script>
+    </head>
+    <body>     
+        <input id="quoteLocation" name="location" type="text" Value="Where were you when this happened?">
+        <ol class="quote">
+            <li class="quotePart" style="list-style-type: none">
+                <input type="text" Value="Who"></input><input type="text" Value="Said What?"></input>
+            </li>
+            <li class="quotePart" style="list-style-type: none">
+                <input type="text" Value="Who"></input><input type="text" Value="Said What?"></input>
+            </li>
+        </ol>
+        <button onClick="addPart()">+</button>
+        <button type="button" onClick="addQuote()">Submit</button>
+    </body>
+</html>

@@ -8,6 +8,60 @@
         <script type="text/javascript">
             console.log("app started");
         </script>
+        <style>
+            .quoteList
+            {
+                list-style-type: none;
+            }
+            
+            .quote
+            {
+                list-style-type: none;
+                padding:10px;
+                border:5px solid gray;
+                margin:10px;
+            }
+            
+            .speaker
+            {
+                width:100px;
+            }
+            .chat-bubble {
+              background-color:#EDEDED;
+              border:2px solid #666666;
+              font-size:20px;
+              line-height:1.3em;
+              margin:10px auto;
+              padding:10px;
+              position:relative;
+              text-align:right;
+              width:300px;
+              -moz-border-radius:10px;
+              -webkit-border-radius:10px;
+              -moz-box-shadow:0 0 5px #888888;
+              -webkit-box-shadow:0 0 5px #888888;
+            }
+            .chat-bubble-arrow-border {
+              border-color: #666666 transparent transparent transparent;
+              border-style: solid;
+              border-width: 10px;
+              height:0;
+              width:0;
+              position:absolute;
+              bottom:-22px;
+              left:270px;
+            }
+            .chat-bubble-arrow {
+              border-color: #EDEDED transparent transparent transparent;
+              border-style: solid;
+              border-width: 10px;
+              height:0;
+              width:0;
+              position:absolute;
+              bottom:-19px;
+              left:270px;
+            }
+        </style>
     </head>
 
     <body>
@@ -17,9 +71,45 @@
             rest_key : "rbNCJ1Mc10EbtICDHCIQmE6gxkeO4NCDXCLDLP0y"    
             });
             
-            $.parse.get("Quotes", function(quotes){
-                document.write("JSON string : "+quotes);
-                });
+            var quoteList = new Array();
+            
+            function logGetResults(req){
+                for (i in req.results)
+                {
+                    quoteList[i] = JSON.parse(req.results[i].quote);
+                }
+            };
+            
+
+            var part = new Array();
+            part[0] = 'part one'
+            part[1] = 'part two'
+            part[2] = 'part three'
+            console.log(JSON.stringify(part));
+            $.parse.post('Quotes',{ parts : part }, function(json){console.log(json);},function(json){console.log(json);});
+            
+            
+            var req = $.parse.get('Quotes',
+                        {'objectId' : 'iGGvf6Ut9E'},
+                        logGetResults
+                        );
+            console.log("get request :"+req);
+            
         </script>
+        <li class ="quoteList">
+            <li class="quote">
+                <div class="chat-bubble">
+                  I say something
+                  <div class="chat-bubble-arrow-border" style="left:30px, text-align:left;"></div>
+                  <div class="chat-bubble-arrow" style="left:30px, text-align:left;"></div>
+                </div>
+                <div class="chat-bubble">
+                  You say something a bit longer than you said befoer and hopefully its longer than 30px
+                  <div class="chat-bubble-arrow-border"></div>
+                  <div class="chat-bubble-arrow"></div>
+                </div>
+            </li>
+        </li>
+        
     </body>
 </html>
