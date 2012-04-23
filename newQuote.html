@@ -3,17 +3,12 @@
     <head>
         <title> </title>
         <!--imports-->
-        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+        <script src="jquery-1.7.2.js"></script>
         <script type="text/javascript" src="jquery.parse.js"></script>
         
         <script type="text/javascript">
             console.log("app started");
-            
-            if (navigator.geolocation)
-            {
-                //navigator.geolocation.getCurrentPosition($(#quoteLocation).value);
-            }
-            
+                                    
             $(document).ready(function(){
                 $('input').focus(function() {
                   this.value = "";
@@ -25,32 +20,57 @@
                     app_id : "eL5Zl4jRY6fUD3PcmbC6yObE3gSmdwfxShYmkOPi",
                     rest_key : "rbNCJ1Mc10EbtICDHCIQmE6gxkeO4NCDXCLDLP0y"    
                 });
+                
+                
             });
             // define part object to go into Parse
-            function part(){
+            function quote(){
+                this.location;
+                this.parts = [];
+                this.extra = "";
+            }
+            
+            function quotePart(){
                     this.name = "";
                     this.said = "";
-                }
+                };
             
             function addPart(){
-               $(".quote").append('<li class="quotePart" style="list-style-type: none"><input type="text" Value="Who"></input><input type="text" Value="Said What?"></input></li>')
+               //$(".quote").append('<li class="quotePart" style="list-style-type: none"><input type="text" Value="Who"></input><input type="text" Value="Said What?"></input></li>');
+               var newQP = document.createElement('li');
+               $(newQP).addClass("quotePart");
+               $(newQP).css({'list-style-type': 'none'})
+                $(".quote").append(newQP);
+               
+               for (val in ["Who","Said What?"]){
+                   var newInput = document.createElement('input');
+                   newInput.type = "text";
+                   newInput.value = val;
+                   $(newInput).bind('focus',function(){this.value =""; $(this).unbind('focus');});
+                   $(".quote li:last-child").append(newInput);
+               }
+
             }
             
             function addQuote(){
                 console.log("adding quote to Parse DB");    
-                
-                var quoteObject = new Array();
+                var thisQuote = new quote();
+                if (navigator.geolocation)
+                {
+                    navigator.geolocation.getCurrentPosition(function(pos){thisQuote.location = pos},function(fail){console.log(fail)});
+                }else{
+                       
+                }
                 
                 $(".quote").find(".quotePart").each(function(){
                     //for each quotePart
-                    var thisPart = new part();
-                    quoteObject.push(thisPart);
+                    var thisPart = new quotePart();
                     thisPart.name = $(this).find("input:nth(0)").val();
                     thisPart.said = $(this).find("input:nth(1)").val();
-                                                        
+                    thisQuote.parts.push(thisPart);     
                 });
                 
-                $.parse.post('Quotes',{ parts:quoteObject}, function(json){console.log(json);},function(json){console.log(json);});
+                $.parse.post('Quotes',thisQuote, function(json){console.log(json)},function(json){console.log(json)});
             }
         </script>
     </head>
@@ -66,5 +86,7 @@
         </ol>
         <button onClick="addPart()">+</button>
         <button type="button" onClick="addQuote()">Submit</button>
+        
+        
     </body>
 </html>
