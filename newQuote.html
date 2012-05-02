@@ -5,23 +5,19 @@
         <!--imports-->
         <script src="jquery-1.7.2.js"></script>
         <script type="text/javascript" src="jquery.parse.js"></script>
+        <link rel="stylesheet/less" href="bootstrap/less/bootstrap.less">
+        <script src="less-1.3.0.min.js"></script>
         
         <script type="text/javascript">
             console.log("app started");
                                     
             $(document).ready(function(){
-                $('input').focus(function() {
-                  this.value = "";
-                  //no longer need to empty input
-                  $(this).unbind('focus');
-                });
-                
+                               
                 $.parse.init({
                     app_id : "eL5Zl4jRY6fUD3PcmbC6yObE3gSmdwfxShYmkOPi",
                     rest_key : "rbNCJ1Mc10EbtICDHCIQmE6gxkeO4NCDXCLDLP0y"    
                 });
-                
-                
+                               
             });
             // define part object to go into Parse
             function quote(){
@@ -37,17 +33,17 @@
             
             function addPart(){
                //$(".quote").append('<li class="quotePart" style="list-style-type: none"><input type="text" Value="Who"></input><input type="text" Value="Said What?"></input></li>');
-               var newQP = document.createElement('li');
+               var newQP = document.createElement('tr');
                $(newQP).addClass("quotePart");
                $(newQP).css({'list-style-type': 'none'})
                 $(".quote").append(newQP);
                
                for (val in ["Who","Said What?"]){
                    var newInput = document.createElement('input');
+                   newInput.class = "span2";
                    newInput.type = "text";
-                   newInput.value = val;
-                   $(newInput).bind('focus',function(){this.value =""; $(this).unbind('focus');});
-                   $(".quote li:last-child").append(newInput);
+                   newInput.placeholder = val;
+                   $(".quote tbody").append(newInput);
                }
 
             }
@@ -75,17 +71,21 @@
         </script>
     </head>
     <body>     
-        <input id="quoteLocation" name="location" type="text" Value="Where were you when this happened?">
-        <ol class="quote">
-            <li class="quotePart" style="list-style-type: none">
-                <input type="text" Value="Who"></input><input type="text" Value="Said What?"></input>
-            </li>
-            <li class="quotePart" style="list-style-type: none">
-                <input type="text" Value="Who"></input><input type="text" Value="Said What?"></input>
-            </li>
-        </ol>
-        <button onClick="addPart()">+</button>
-        <button type="button" onClick="addQuote()">Submit</button>
+        <input id="quoteLocation" name="location" type="text" placeholder="Where were you when this happened?">
+        <table class="quote table-striped">
+            <tbody>
+                <tr>
+                    <td class="quotePart"><span class="add-on"><i class="icon-user"></i></span><input class="span2" type="text" placeholder="Who">  </input><input class="span4" type="text" placeholder="Said What?"></input></td>
+                </tr>
+                <tr>
+                    <td class="quotePart"><span class="add-on"><i class="icon-user"></i></span><input class="span2" type="text" placeholder="Who">  </input><input class="span4" type="text" placeholder="Said What?"></input></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <button class="btn" onClick="addPart()">+</button>
+        <button class="btn">-</button>
+        <button class="btn btn-primary" onClick="addQuote()">Submit</button>
         
         
     </body>
