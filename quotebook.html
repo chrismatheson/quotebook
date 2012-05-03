@@ -5,62 +5,11 @@
         <script type="text/javascript" src="jquery.parse.js"></script>
         <link rel="stylesheet/less" href="bootstrap/less/bootstrap.less">
         <script src="less-1.3.0.min.js"></script>
-        
+        <script src="bootstrap/js/bootstrap-modal.js"></script>
         <script type="text/javascript">
             console.log("app started");
         </script>
 
-        <!-- depreciated
-        <style>
-            .quoteList {
-                list-style-type: none;
-            }
-            .quote {
-                list-style-type: none;
-                padding:10px;
-                border:5px solid gray;
-                margin:10px;
-            }
-            .speaker {
-                width:100px;
-            }
-            .chat-bubble {
-              background-color:#EDEDED;
-              border:2px solid #666666;
-              font-size:20px;
-              line-height:1.3em;
-              margin:10px auto;
-              padding:10px;
-              position:relative;
-              text-align:right;
-              width:300px;
-              -moz-border-radius:10px;
-              -webkit-border-radius:10px;
-              -moz-box-shadow:0 0 5px #888888;
-              -webkit-box-shadow:0 0 5px #888888;
-            }
-            .chat-bubble-arrow-border {
-              border-color: #666666 transparent transparent transparent;
-              border-style: solid;
-              border-width: 10px;
-              height:0;
-              width:0;
-              position:absolute;
-              bottom:-22px;
-              left:270px;
-            }
-            .chat-bubble-arrow {
-              border-color: #EDEDED transparent transparent transparent;
-              border-style: solid;
-              border-width: 10px;
-              height:0;
-              width:0;
-              position:absolute;
-              bottom:-19px;
-              left:270px;
-            }
-        </style>
-        -->
     </head>
 
     <body>
@@ -82,15 +31,20 @@
             var req = $.parse.get('Quotes',{},logGetResults);
             console.log("get request :"+req);
             
+            function addQuoteToList(quoteToAdd){
+                $('#quoteModel').clone().removeClass('hide').appendTo('#quoteList > tbody');
+            };
         </script>      
         
-        <table class="table table-striped">
+        <!-- QuoteList  view -->
+        <table class="table table-striped" id="#quoteList">
             <tbody>
-                <tr>
+                <tr class="hide" id="#quoteModel">
                     <td>
                         <blockquote>
                             <p>First bit of a quote</p>
-                            <small>Jack Capel, manchester</small>
+                            <p>Second bit of a quote</p>
+                            <small>Chris Matheson, somewhere</small>
                         </blockquote>
                     </td>
                 </tr>
@@ -98,15 +52,26 @@
                     <td>
                         <blockquote>
                             <p>First bit of a quote</p>
-                            <p>Seccond bit of a quote</p>
+                            <p>Second bit of a quote</p>
+                            <small>Chris Matheson, somewhere</small>
+                        </blockquote>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <blockquote>
+                            <p>Emma is really sexy</p>
+                            <p>Sand im going to have lots of sex wiht her</p>
                             <small>Chris Matheson, somewhere</small>
                         </blockquote>
                     </td>
                 </tr>
             </tbody>
         </table>
+        <button class="btn" onClick="addQuoteToList()">add</button>
         
-        <div class="modal hide fade" id="addQuote" style="display: none;">
+        <!-- hidden modal view -->
+        <div class="modal hide fade in" id="addQuote">
           <div class="modal-header">
             <button class="close" data-dismiss="modal">×</button>
             <h3>New Quote</h3>
@@ -131,7 +96,7 @@
           </div>
         </div>
         
-        <a class="btn" data-toggle="modal" href="#addQuote" >Add Your Quote</a>
+        <button class="btn" onClick="$('#addQuote').modal()">Add Your Quote</button>
         
     </body>
 </html>
