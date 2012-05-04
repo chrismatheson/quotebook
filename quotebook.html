@@ -19,8 +19,6 @@
                 rest_key : "rbNCJ1Mc10EbtICDHCIQmE6gxkeO4NCDXCLDLP0y"    
             });
             
-            var quoteList = new Array();
-            
             function logGetResults(req){
                 for (i in req.results)
                 {
@@ -31,16 +29,54 @@
             var req = $.parse.get('Quotes',{},logGetResults);
             console.log("get request :"+req);
             
+            function getQuotesFromServer(){
+                
+            }
+            
+            function submitNewQuoteToServer(){
+                
+            }
+            
+            function addNewQuotePart(){
+                if($('.quote > tbody > tr').size() > 10){
+                    alert("A quote with more that 10 parts to it is a short story!");
+                }else{
+                $('#newQuotePartModel').clone().removeClass('hide').appendTo('.quote > tbody');
+                }
+            }
+            
+            function removeNewQuotePart(){
+                $('.quote > tbody > tr:last-child').remove();
+            }
+            
             function addQuoteToList(quoteToAdd){
-                console.log($('#quoteList > tbody:first-child').html());
-                $('#quoteList > tbody > tr:first-child').clone().removeClass('hide').appendTo('#quoteList > tbody');
+                $('#quoteModel').clone().removeClass('hide').appendTo('#quoteList > tbody');
             };
         </script>      
         
         <!-- QuoteList  view -->
         <table class="table table-striped" id="quoteList">
             <tbody>
-                <tr class="hide">
+                <!-- This <tr> element shall be coppied for each quote added to quotelist. Its the 'Model' for a quote -->
+                <tr class="hide" id="quoteModel">
+                    <td>
+                        <blockquote>
+                            <p>First bit of a quote</p>
+                            <p>Second bit of a quote</p>
+                            <small>Chris Matheson, somewhere</small>
+                        </blockquote>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <blockquote>
+                            <p>First bit of a quote</p>
+                            <p>Second bit of a quote</p>
+                            <small>Chris Matheson, somewhere</small>
+                        </blockquote>
+                    </td>
+                </tr>
+                <tr>
                     <td>
                         <blockquote>
                             <p>First bit of a quote</p>
@@ -60,22 +96,24 @@
             <h3>New Quote</h3>
           </div>
           <div class="modal-body">
-            <input id="quoteLocation" name="location" type="text" placeholder="Where were you when this happened?">
+            <input id="quoteLocation" class="span6" name="location" type="text" placeholder="Where were you when this happened?">
             <table class="quote table-striped">
                 <tbody>
-                    <tr>
-                        <td class="quotePart"><span class="add-on"><i class="icon-user"></i></span><input class="span2" type="text" placeholder="Who">  </input><input class="span4" type="text" placeholder="Said What?"></input></td>
+                    <!-- This <tr> element shall be coppied when the plus button is hit. Its the 'Model' for a quote part -->
+                    <tr class="hide" id="newQuotePartModel">
+                        <td class="quotePart"><input class="span2" type="text" placeholder="Who">  </input><input class="span4" type="text" placeholder="Said What?"></input></td>
                     </tr>
                     <tr>
-                        <td class="quotePart"><span class="add-on"><i class="icon-user"></i></span><input class="span2" type="text" placeholder="Who">  </input><input class="span4" type="text" placeholder="Said What?"></input></td>
+                        <td class="quotePart" style="{height: 22px}"><input class="span2" type="text" placeholder="Who">  </input><input class="span4" type="text" placeholder="Said What?"></input></td>
                     </tr>
                 </tbody>
             </table>
+            <input id="quoteMeta" class="span6" name="location" type="text" placeholder="anything else that needs added.">
           </div>
           <div class="modal-footer">
-            <button href="#" class="btn" onClick="addPart()">+</button>
-            <button href="#" class="btn">-</button>
-            <button href="#" class="btn btn-primary" onClick="addQuote()">Submit</button>
+            <button href="#" class="btn" onClick="addNewQuotePart()">+</button>
+            <button href="#" class="btn" onClick="removeNewQuotePart()">-</button>
+            <button href="#" class="btn btn-primary">Submit</button>
           </div>
         </div>
         
