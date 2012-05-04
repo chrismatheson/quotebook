@@ -7,7 +7,7 @@
         <script src="less-1.3.0.min.js"></script>
         <script src="bootstrap/js/bootstrap-modal.js"></script>
         <script type="text/javascript">
-            console.log("app started");
+            console.log("QuoteBook app started");
         </script>
 
     </head>
@@ -15,8 +15,8 @@
     <body>
         <script type="text/javascript">
             $.parse.init({
-            app_id : "eL5Zl4jRY6fUD3PcmbC6yObE3gSmdwfxShYmkOPi",
-            rest_key : "rbNCJ1Mc10EbtICDHCIQmE6gxkeO4NCDXCLDLP0y"    
+                app_id : "eL5Zl4jRY6fUD3PcmbC6yObE3gSmdwfxShYmkOPi",
+                rest_key : "rbNCJ1Mc10EbtICDHCIQmE6gxkeO4NCDXCLDLP0y"    
             });
             
             var quoteList = new Array();
@@ -32,36 +32,19 @@
             console.log("get request :"+req);
             
             function addQuoteToList(quoteToAdd){
-                $('#quoteModel').clone().removeClass('hide').appendTo('#quoteList > tbody');
+                console.log($('#quoteList > tbody:first-child').html());
+                $('#quoteList > tbody > tr:first-child').clone().removeClass('hide').appendTo('#quoteList > tbody');
             };
         </script>      
         
         <!-- QuoteList  view -->
-        <table class="table table-striped" id="#quoteList">
+        <table class="table table-striped" id="quoteList">
             <tbody>
-                <tr class="hide" id="#quoteModel">
+                <tr class="hide">
                     <td>
                         <blockquote>
                             <p>First bit of a quote</p>
                             <p>Second bit of a quote</p>
-                            <small>Chris Matheson, somewhere</small>
-                        </blockquote>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <blockquote>
-                            <p>First bit of a quote</p>
-                            <p>Second bit of a quote</p>
-                            <small>Chris Matheson, somewhere</small>
-                        </blockquote>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <blockquote>
-                            <p>Emma is really sexy</p>
-                            <p>Sand im going to have lots of sex wiht her</p>
                             <small>Chris Matheson, somewhere</small>
                         </blockquote>
                     </td>
