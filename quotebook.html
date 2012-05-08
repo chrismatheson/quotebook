@@ -19,29 +19,34 @@
                 rest_key : "rbNCJ1Mc10EbtICDHCIQmE6gxkeO4NCDXCLDLP0y"    
             });
             
-            function logGetResults(req){
+            /*
+            /   server methods 
+            */
+            function getQuotesFromServer(){
+                ar req = $.parse.get('Quotes',{},processServerResult);
+                console.log("get request :"+req);                
+            }
+            
+            function processServerResult(req){
+                console.log("halt");
                 for (i in req.results)
                 {
                     quoteList[i] = req.results[i];
                 }
             };    
             
-            var req = $.parse.get('Quotes',{},logGetResults);
-            console.log("get request :"+req);
-            
-            function getQuotesFromServer(){
-                
-            }
-            
             function submitNewQuoteToServer(){
-                
+                $('.quotePart');
             }
             
+            /*
+            /   view methods 
+            */
             function addNewQuotePart(){
                 if($('.quote > tbody > tr').size() > 10){
                     alert("A quote with more that 10 parts to it is a short story!");
                 }else{
-                $('#newQuotePartModel').clone().removeClass('hide').appendTo('.quote > tbody');
+                $('#newQuotePartModel').clone().removeClass('hidden').addClass('quotePart').appendTo('.quote > tbody');
                 }
             }
             
@@ -50,7 +55,7 @@
             }
             
             function addQuoteToList(quoteToAdd){
-                $('#quoteModel').clone().removeClass('hide').appendTo('#quoteList > tbody');
+                $('#quoteModel').clone().removeClass('hidden').appendTo('#quoteList > tbody');
             };
         </script>      
         
@@ -58,7 +63,7 @@
         <table class="table table-striped" id="quoteList">
             <tbody>
                 <!-- This <tr> element shall be coppied for each quote added to quotelist. Its the 'Model' for a quote -->
-                <tr class="hide" id="quoteModel">
+                <tr class="hidden" id="quoteModel">
                     <td>
                         <blockquote>
                             <p>First bit of a quote</p>
@@ -90,7 +95,7 @@
         <button class="btn" onClick="addQuoteToList()">add</button>
         
         <!-- hidden modal view -->
-        <div class="modal hide fade in" id="addQuote">
+        <div class="modal hidden fade in" id="addQuote">
           <div class="modal-header">
             <button class="close" data-dismiss="modal">×</button>
             <h3>New Quote</h3>
@@ -100,7 +105,7 @@
             <table class="quote table-striped">
                 <tbody>
                     <!-- This <tr> element shall be coppied when the plus button is hit. Its the 'Model' for a quote part -->
-                    <tr class="hide" id="newQuotePartModel">
+                    <tr class="hidden" id="newQuotePartModel">
                         <td class="quotePart"><input class="span2" type="text" placeholder="Who">  </input><input class="span4" type="text" placeholder="Said What?"></input></td>
                     </tr>
                     <tr>
@@ -113,10 +118,10 @@
           <div class="modal-footer">
             <button href="#" class="btn" onClick="addNewQuotePart()">+</button>
             <button href="#" class="btn" onClick="removeNewQuotePart()">-</button>
-            <button href="#" class="btn btn-primary">Submit</button>
+            <button href="#" class="btn btn-primary" onClick="submitNewQuoteToServer()">Submit</button>
           </div>
         </div>
-        
+        <!-- End of modal view -->
         <button class="btn" onClick="$('#addQuote').modal()">Add Your Quote</button>
         
     </body>
