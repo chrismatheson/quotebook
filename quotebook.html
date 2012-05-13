@@ -23,30 +23,33 @@
             /   server methods 
             */
             function getQuotesFromServer(){
-                ar req = $.parse.get('Quotes',{},processServerResult);
-                console.log("get request :"+req);                
+                $.parse.get('Quotes',{},processServerResult);
             }
             
             function processServerResult(req){
                 console.log("halt");
                 for (i in req.results)
                 {
-                    quoteList[i] = req.results[i];
+                    addQuoteToList(req.results[i]);
                 }
             };    
             
             function submitNewQuoteToServer(){
-                $('.quotePart');
+                var parts = $('.newQuote > .newQuotePart');
+                for (part in parts)
+                {
+                    console.log($(part).stringify());
+                }
             }
             
             /*
             /   view methods 
             */
             function addNewQuotePart(){
-                if($('.quote > tbody > tr').size() > 10){
+                if($('.newQuote > tbody > tr').size() > 10){
                     alert("A quote with more that 10 parts to it is a short story!");
                 }else{
-                $('#newQuotePartModel').clone().removeClass('hidden').addClass('quotePart').appendTo('.quote > tbody');
+                $('#newQuotePartModel').clone().removeClass('hide').addClass('newQuotePart').appendTo('.newQuote > tbody');
                 }
             }
             
@@ -55,38 +58,27 @@
             }
             
             function addQuoteToList(quoteToAdd){
-                $('#quoteModel').clone().removeClass('hidden').appendTo('#quoteList > tbody');
+                var currentQuote = $('#quoteModel').clone().removeClass('hide');
+                
+                $(currentQuote).prop("id",null);
+                
+                for (var i = quoteToAdd.parts.length - 1; i >= 0; i--) {
+                    $(currentQuote).find('blockquote').append("<p>"+quoteToAdd.parts[i].said+"</p>");
+                };
+
+                $(currentQuote).appendTo('#quoteList > tbody');
             };
+
+            getQuotesFromServer();
         </script>      
         
         <!-- QuoteList  view -->
         <table class="table table-striped" id="quoteList">
             <tbody>
                 <!-- This <tr> element shall be coppied for each quote added to quotelist. Its the 'Model' for a quote -->
-                <tr class="hidden" id="quoteModel">
+                <tr class="hide" id="quoteModel">
                     <td>
                         <blockquote>
-                            <p>First bit of a quote</p>
-                            <p>Second bit of a quote</p>
-                            <small>Chris Matheson, somewhere</small>
-                        </blockquote>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <blockquote>
-                            <p>First bit of a quote</p>
-                            <p>Second bit of a quote</p>
-                            <small>Chris Matheson, somewhere</small>
-                        </blockquote>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <blockquote>
-                            <p>First bit of a quote</p>
-                            <p>Second bit of a quote</p>
-                            <small>Chris Matheson, somewhere</small>
                         </blockquote>
                     </td>
                 </tr>
@@ -95,21 +87,21 @@
         <button class="btn" onClick="addQuoteToList()">add</button>
         
         <!-- hidden modal view -->
-        <div class="modal hidden fade in" id="addQuote">
+        <div class="modal hide fade in" id="addQuote">
           <div class="modal-header">
             <button class="close" data-dismiss="modal">×</button>
             <h3>New Quote</h3>
           </div>
           <div class="modal-body">
             <input id="quoteLocation" class="span6" name="location" type="text" placeholder="Where were you when this happened?">
-            <table class="quote table-striped">
+            <table class="newQuote table-striped">
                 <tbody>
                     <!-- This <tr> element shall be coppied when the plus button is hit. Its the 'Model' for a quote part -->
-                    <tr class="hidden" id="newQuotePartModel">
-                        <td class="quotePart"><input class="span2" type="text" placeholder="Who">  </input><input class="span4" type="text" placeholder="Said What?"></input></td>
+                    <tr class="hide" id="newQuotePartModel">
+                        <td><input class="span2" type="text" placeholder="Who">  </input><input class="span4" type="text" placeholder="Said What?"></input></td>
                     </tr>
                     <tr>
-                        <td class="quotePart" style="{height: 22px}"><input class="span2" type="text" placeholder="Who">  </input><input class="span4" type="text" placeholder="Said What?"></input></td>
+                        <td class="newQuotePart"><input class="span2" type="text" placeholder="Who">  </input><input class="span4" type="text" placeholder="Said What?"></input></td>
                     </tr>
                 </tbody>
             </table>
