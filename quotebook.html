@@ -84,7 +84,13 @@
                 for (part in quoteToAdd.parts) {
                     $(currentQuote).find('blockquote').append("<p>"+quoteToAdd.parts[part].who+" : "+quoteToAdd.parts[part].said+"</p>");
                 };
-
+                if(quoteToAdd.meta){
+                    $(currentQuote).find('blockquote').append("<small>"+quoteToAdd.meta+"</small>");
+                }
+                if(quoteToAdd.loc){
+                    //$(currentQuote).find('blockquote').append("<i>").addClass('icon-screenshot');
+                    $(currentQuote).find('blockquote').append("<small>"+quoteToAdd.loc+"</small>");    
+                }
                 $(currentQuote).appendTo('#quoteList > tbody');
             };
             
