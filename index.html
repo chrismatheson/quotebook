@@ -49,7 +49,7 @@
                 parseDataObj.loc = $('#quoteLocation').val();
                 parseDataObj.meta = $('#quoteMeta').val();
                                     
-                $('.newQuote').find('.newQuotePart').each(function(index,element){
+                $('#newQuote').find('.newQuotePart').each(function(index,element){
                     var part =  new Object();
                     part.who  = $(element).find('input:nth-child(1)').val();
                     part.said = $(element).find('input:nth-child(2)').val();
@@ -75,7 +75,9 @@
             }
             
             function removeNewQuotePart(){
-                $('.newQuote > tbody > tr:last-child:not(#newQuotePartModel)').remove();
+                if($('#newQuote > tbody > tr').length > 2){
+                    $('#newQuote > tbody > tr:last-child').remove();   
+                }
             }
             
             /**
