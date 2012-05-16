@@ -19,12 +19,14 @@
                 rest_key : "rbNCJ1Mc10EbtICDHCIQmE6gxkeO4NCDXCLDLP0y"    
             });
             
+            $.parse.dbPointer = 'Dev';
+            
             /**
              * Tag:serverMethods
              */
             function getQuotesFromServer(){
                 console.log("Log: Requesting quotes from server");
-                $.parse.get('Quotes',{},processServerResult);
+                $.parse.get($.parse.dbPointer,{},processServerResult);
             }
             
             function processServerResult(req){
@@ -49,7 +51,7 @@
                     part.said = $(element).find('input:nth-child(2)').val();
                     parseDataObj.parts.push(part);
                 });
-                $.parse.post('Quotes',parseDataObj);
+                $.parse.post($.parse.dbPointer,parseDataObj);
                 console.log(parseDataObj);
                 $('#addQuote').modal('hide');
                 refreshView();
