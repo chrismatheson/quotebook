@@ -74,6 +74,10 @@
                 }
             }
             
+            /**
+             * removes part from newQuote
+             * making sure to leave 1 visible and model untouched
+             */             
             function removeNewQuotePart(){
                 if($('#newQuote > tbody > tr').length > 2){
                     $('#newQuote > tbody > tr:last-child').remove();   
