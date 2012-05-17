@@ -2,6 +2,7 @@
     <head>
         <meta http-equiv="Content-type" content="text/html; charset=utf-8">
         <meta name = "viewport" content="width=device-width, initial-scale=0.75, user-scalable=no">
+        <meta http-equiv="X-UA-Compatible" content="chrome=1">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
         <script type="text/javascript" src="jquery.parse.js"></script>
         <link rel="stylesheet/less" href="bootstrap/less/bootstrap.less">
@@ -9,6 +10,11 @@
         <script src="bootstrap/js/bootstrap-modal.js"></script>
         <script type="text/javascript">
             console.log("QuoteBook app started using : "+navigator.appName);
+            
+            if(navigator.appName == "Microsoft Internet Explorer"){
+                alert("This site does not run on IE.");
+    			window.location="https://www.google.com/chrome/";
+            }
         </script>
 
     </head>
