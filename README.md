@@ -1,1 +1,0 @@
-jQuery, Bootstrap and Parse based QuoteBook
