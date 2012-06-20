@@ -1,2 +1,4 @@
 *.DS_Store
 *.Log
+node_modules/
+.c9revisions
