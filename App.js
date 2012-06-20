@@ -29,4 +29,4 @@ app.configure('production', function(){
   app.use(express.errorHandler());
 });
 // *******************************************************
-app.listen(process.env.C9_PORT);
+app.listen(process.env.VCAP_APP_PORT || process.env.C9_PORT);
