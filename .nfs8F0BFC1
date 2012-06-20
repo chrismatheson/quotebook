@@ -1,2 +1,2 @@
 [submodule "bootstrap"]
-	path = bootstrap
+	path = public/bootstrap
