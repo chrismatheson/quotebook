@@ -11,7 +11,7 @@
 //   views/
 //
 var express = require('express');
-var app = module.exports = express.createServer();
+var app = express();
 var viewEngine = 'jade'; // modify for your view engine
 // Configuration
 app.configure(function(){
