@@ -1,10 +1,10 @@
 {
-  "name": "quotebook-js",
+  "name": "quotebook",
   "version": "0.0.1",
   "dependencies": {
-    "express": ""
+    "express": ">=2.5.0"
     },
   "engines": {
-    "node": ""
+    "node": ">=0.4.0"
   }
 }
