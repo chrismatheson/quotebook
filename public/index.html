@@ -4,7 +4,8 @@
         <meta name = "viewport" content="width=device-width, initial-scale=0.75, user-scalable=no">
         <meta http-equiv="X-UA-Compatible" content="chrome=1">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-        <script type="text/javascript" src="jquery.parse.js"></script>
+        <script type="text/javascript" src="http://ajax.cdnjs.com/ajax/libs/underscore.js/1.1.6/underscore-min.js"></script>
+        <script type="text/javascript" src="parse-1.0.20.js"></script>
         <link rel="stylesheet/less" href="bootstrap/less/bootstrap.less">
         <script src="less-1.3.0.min.js"></script>
         <script src="bootstrap/js/bootstrap-modal.js"></script>
@@ -13,7 +14,7 @@
             
             if(navigator.appName == "Microsoft Internet Explorer"){
                 alert("This site does not run on IE.");
-    			window.location="https://www.google.com/chrome/";
+                window.location="https://www.google.com/chrome/";
             }
         </script>
 
@@ -21,160 +22,101 @@
 
     <body>
         <script type="text/javascript">
-            $.parse.init({
-                app_id : "eL5Zl4jRY6fUD3PcmbC6yObE3gSmdwfxShYmkOPi",
-                rest_key : "rbNCJ1Mc10EbtICDHCIQmE6gxkeO4NCDXCLDLP0y"    
+        $(function($){
+            Parse.initialize('eL5Zl4jRY6fUD3PcmbC6yObE3gSmdwfxShYmkOPi','jfokH6Oa1Cx1PENgS414NUtUPi5UypVTFfGuWQQp');
+            
+            /**
+             * Define models
+             */
+            var Quote = Parse.Object.extend("Dev",{
+                defaults:{
+                    className:'Quote',
+                    loc:'a location',
+                    meta:'some data',
+                    parts:[{"said":"something","who":"person"},{"said":"something else","who":"another person"}]
+                }
+            }); //Define Quote as a subclass
+                        
+            var Quotes = Parse.Collection.extend({
+              model: Quote,
+              view: null
             });
             
             /**
-             * WARNING : Change this to 'Quotes' for live
-             * version
+             * Define Views
              */
-            $.parse.dbPointer = 'Quotes';
-            
-            /**
-             * Tag:serverMethods
-             */
-            function getQuotesFromServer(){
-                console.log("Log: Requesting quotes from server");
-                $.parse.get($.parse.dbPointer,{},processServerResult);
-            }
-            
-            function processServerResult(req){
-                console.log("Log: Processing Server Results");
-                console.log("Log: Recieved "+req.results.length+" results from server");
-                for (i in req.results)
-                {
-                    console.log("Log: Adding quote "+i);
-                    addQuoteToList(req.results[i]);
+             var QuoteView = Parse.View.extend({
+                tagName: 'tr',
+                initialize: function(model){
+                    this.model = model || new Quote();
+                },
+                render: function(){
+                    $(this.el).find('*').remove
+                    
+                    $(this.el).append(this.make('blockquote',{class:'QuoteView'}));
+                    $(this.model.get('parts')).each(function(i,part){
+                        $('blockquote').append(part.who+' : '+part.said+'<br>');
+                    });
+                    $('blockquote').append(this.make('small',{},this.model.get('meta')));
+                    $('blockquote').append(this.make('small',{},this.model.get('loc')));
+                    return this;
                 }
-            };    
+            });
             
-            function submitNewQuoteToServer(){
-                parseDataObj = new Object();
-                parseDataObj.parts = new Array();
-                parseDataObj.loc = $('#quoteLocation').val();
-                parseDataObj.meta = $('#quoteMeta').val();
-                                    
-                $('#newQuote').find('.newQuotePart').each(function(index,element){
-                    var part =  new Object();
-                    part.who  = $(element).find('input:nth-child(1)').val();
-                    part.said = $(element).find('input:nth-child(2)').val();
-                    parseDataObj.parts.push(part);
-                });
-                $.parse.post($.parse.dbPointer,parseDataObj);
-                console.log(parseDataObj);
-                $('#addQuote').modal('hide');
-                refreshView();
-            }
-            
-            /**
-             * Adds a new input pair to the modal view
-             * 
-             * Tag:viewMethod
-             */
-            function addNewQuotePart(){
-                if($('#newQuote > tbody > tr').size() > 10){
-                    alert("A quote with more that 10 parts to it is a short story!");
-                }else{
-                    $('#newQuotePartModel').clone().removeClass('hide').removeAttr('id').addClass('newQuotePart').appendTo('.newQuote > tbody');
+            var QuotesListView = Parse.View.extend({
+                el: $('#quoteList'),
+                initialize: function(){
+                   
+                },
+                render: function(){
+                    var quoteList;
+                    if(quoteList = this.model){
+                        var res = quoteList.each(function(item){
+                            var itemView = new QuoteView(item);
+                            return itemView.render();
+                        });
+                    }
+                },
+                addSubView: function(subView){
+                    try{
+                        $(this.el).append(subView.render);
+                    }catch(err){
+                        console.warn('Failed to add subview to element : '+this.el);
+                        console.warn(err);
+                        console.warn('Maybe object passed is not a view?');
+                    }
                 }
-            }
+            });
+            
+            
             
             /**
-             * removes part from newQuote
-             * making sure to leave 1 visible and model untouched
-             */             
-            function removeNewQuotePart(){
-                if($('#newQuote > tbody > tr').length > 2){
-                    $('#newQuote > tbody > tr:last-child').remove();   
-                }
-            }
-            
-            /**
-             * adds a quote view to the list of quotes
-             * from a parse 'Quote' object
-             * 
-             * Tag:viewMethod
+             * start doing things
              */
-            function addQuoteToList(quoteToAdd){
-                var currentQuote = $('#quoteModel').clone().removeClass('hide').removeAttr('id');
-                                
-                for (part in quoteToAdd.parts) {
-                    $(currentQuote).find('blockquote').append("<p>"+quoteToAdd.parts[part].who+" : "+quoteToAdd.parts[part].said+"</p>");
-                };
-                if(quoteToAdd.meta){
-                    $(currentQuote).find('blockquote').append("<small>"+quoteToAdd.meta+"</small>");
-                }
-                if(quoteToAdd.loc){
-                    //$(currentQuote).find('blockquote').append("<i>").addClass('icon-screenshot');
-                    $(currentQuote).find('blockquote').append("<small>"+quoteToAdd.loc+"</small>");    
-                }
-                $(currentQuote).appendTo('#quoteList > tbody');
-            };
+            var quotes = new Quotes(); //define instance of quotes Model
             
-            /**
-             * clear quoteList and request data from server
-             */
-            function refreshView(){
-                console.log($('#newQuote > tbody > tr:not(#newQuotePartModel)'));
-                $('#quoteList > tbody > tr:not(#quoteModel)').remove();
-                getQuotesFromServer();
-            }
+            window.app = new QuotesListView(); //instance of Quotes View
+            app.el = $('#applicationMainView');
             
-            /**
-             * main program starts here!
-             */
-            getQuotesFromServer();
-        </script>      
-        
-          <!-- QuoteList  view -->
-        <table class="table table-striped" id="quoteList">
-            <tbody>
-                <!-- This <tr> element shall be coppied for each quote added to quotelist. Its the 'Model' for a quote -->
-                <tr class="hide" id="quoteModel">
-                    <td>
-                        <blockquote>
-                        </blockquote>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+            quotes.fetch({
+                success: function(collection) {
+                    app.model = collection;
+                    app.render();
+                },
+                error: function(collection, error) {
+                    console.error('The collection could not be retrieved.');
+                }
+            });
 
-        <button class="btn" onClick="$('#addQuote').modal()">Add Your Quote</button>
-        
-        <!-- hidden modal view -->
-        <div class="modal hide fade in" id="addQuote">
-          <div class="modal-header">
-            <button class="close" data-dismiss="modal">×</button>
-            <h3>New Quote</h3>
-          </div>
-          <div class="modal-body">
-            <input id="quoteLocation" class="span6" name="location" type="text" placeholder="Where were you when this happened?">
-            <table id="newQuote" class="newQuote table-striped">
-                <tbody>
-                    <!-- This <tr> element shall be coppied when the plus button is hit. Its the 'Model' for a quote part -->
-                    <tr class="hide" id="newQuotePartModel">
-                        <td><input class="span2" type="text" placeholder="Who">  </input><input class="span4" type="text" placeholder="Said What?"></input></td>
-                    </tr>
-                    <tr>
-                        <td class="newQuotePart"><input class="span2" type="text" placeholder="Who">  </input><input class="span4" type="text" placeholder="Said What?"></input></td>
-                    </tr>
-                    <tr>
-                        <td class="newQuotePart"><input class="span2" type="text" placeholder="Who">  </input><input class="span4" type="text" placeholder="Said What?"></input></td>
-                    </tr>
-                </tbody>
-            </table>
-            <input id="quoteMeta" class="span6" name="location" type="text" placeholder="anything else that needs added.">
-          </div>
-          <div class="modal-footer">
-            <button href="#" class="btn" onClick="addNewQuotePart()">+</button>
-            <button href="#" class="btn" onClick="removeNewQuotePart()">-</button>
-            <button href="#" class="btn btn-primary" onClick="submitNewQuoteToServer()">Submit</button>
-          </div>
+            
+        //end of app
+        });
+        </script>
+        <div id='applicationMainView'>
+            <!-- some placeholder elements -->
+            <div></div>
+            <div></div>
+            <div></div>
         </div>
-        <!-- End of modal view -->
-        
     </body>
-</html>
 </html>
