@@ -21,10 +21,24 @@
     </head>
 
     <body>
+
+        <!--script id="quote-template" type="text/x-handlebars-template">
+            <div >
+              <blockquote class="QuoteView">
+                {{part.who}}:{{part.said}}
+                <small>{{meta}}</small>
+                <small>{{loc}}</small>
+              </blockquote>
+            </div>
+        </script-->
+
         <script type="text/javascript">
         $(function($){
             Parse.initialize('eL5Zl4jRY6fUD3PcmbC6yObE3gSmdwfxShYmkOPi','jfokH6Oa1Cx1PENgS414NUtUPi5UypVTFfGuWQQp');
             
+            _.templateSettings = {
+                interpolate : /\{\{(.+?)\}\}/g
+            };
             /**
              * Define models
              */
@@ -50,15 +64,20 @@
                 initialize: function(model){
                     this.model = model || new Quote();
                 },
+                lineTemplate: _.template("
+                    {{who}}:{{what}}<br>
+                    "),
+                template: _.template("
+                    <div >
+                      <blockquote class='QuoteView'>
+                        {{part.who}}:{{part.said}}
+                        <small>{{meta}}</small>
+                        <small>{{loc}}</small>
+                      </blockquote>
+                    </div>
+                    "),
                 render: function(){
-                    $(this.el).find('*').remove
-                    
-                    $(this.el).append(this.make('blockquote',{class:'QuoteView'}));
-                    $(this.model.get('parts')).each(function(i,part){
-                        $('blockquote').append(part.who+' : '+part.said+'<br>');
-                    });
-                    $('blockquote').append(this.make('small',{},this.model.get('meta')));
-                    $('blockquote').append(this.make('small',{},this.model.get('loc')));
+                    $('#raw').html( this.template( this.model.toJSON() ) );
                     return this;
                 }
             });
@@ -68,27 +87,18 @@
                 initialize: function(){
                    
                 },
+                template: _.template(),
                 render: function(){
                     var quoteList;
+                    //this is scoped to current view
                     if(quoteList = this.model){
                         var res = quoteList.each(function(item){
                             var itemView = new QuoteView(item);
                             return itemView.render();
                         });
                     }
-                },
-                addSubView: function(subView){
-                    try{
-                        $(this.el).append(subView.render);
-                    }catch(err){
-                        console.warn('Failed to add subview to element : '+this.el);
-                        console.warn(err);
-                        console.warn('Maybe object passed is not a view?');
-                    }
                 }
             });
-            
-            
             
             /**
              * start doing things
@@ -96,12 +106,14 @@
             var quotes = new Quotes(); //define instance of quotes Model
             
             window.app = new QuotesListView(); //instance of Quotes View
+            window.rawview = new RawView(); //instance of Quotes View
             app.el = $('#applicationMainView');
             
             quotes.fetch({
                 success: function(collection) {
                     app.model = collection;
                     app.render();
+
                 },
                 error: function(collection, error) {
                     console.error('The collection could not be retrieved.');
@@ -117,6 +129,8 @@
             <div></div>
             <div></div>
             <div></div>
+        </div>
+        <div id="raw">
         </div>
     </body>
 </html>

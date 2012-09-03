@@ -11,12 +11,9 @@
 //   views/
 //
 var express = require('express');
-var app = module.exports = express.createServer();
-var viewEngine = 'jade'; // modify for your view engine
+var app = express();
 // Configuration
 app.configure(function(){
-  app.set('views', __dirname + '/views');
-  app.set('view engine', viewEngine);
   app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(app.router);
@@ -29,4 +26,4 @@ app.configure('production', function(){
   app.use(express.errorHandler());
 });
 // *******************************************************
-app.listen(process.env.VCAP_APP_PORT || process.env.C9_PORT);
+app.listen(process.env.VCAP_APP_PORT || process.env.C9_PORT || 80);
