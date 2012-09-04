@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
     <head>
         <meta http-equiv="Content-type" content="text/html; charset=utf-8">
         <meta name = "viewport" content="width=device-width, initial-scale=0.75, user-scalable=no">
@@ -8,7 +9,7 @@
         <script src="http://ajax.cdnjs.com/ajax/libs/underscore.js/1.1.6/underscore-min.js"></script>
         
         <script type="text/javascript" src="parse-1.0.20.js"></script>
-        <link rel="stylesheet/less" href="bootstrap/css/bootstrap.css">
+        <link rel="stylesheet" href="bootstrap/css/bootstrap.css">
 
         <script src="bootstrap/js/bootstrap.js"></script>
         <script type="text/javascript">
@@ -23,16 +24,6 @@
     </head>
 
     <body>
-
-        <!--script id="quote-template" type="text/x-handlebars-template">
-            <div >
-              <blockquote class="QuoteView">
-                {{part.who}}:{{part.said}}
-                <small>{{meta}}</small>
-                <small>{{loc}}</small>
-              </blockquote>
-            </div>
-        </script-->
 
         <script type="text/javascript">
         $(function($){
@@ -61,25 +52,44 @@
             /**
              * Define Views
              */
-             var QuoteView = Parse.View.extend({
+            var QuoteView = Parse.View.extend({
                 tagName: 'tr',
                 initialize: function(model){
                     this.model = model || new Quote();
                 },
-                lineTemplate: _.template("
-                    {{who}}:{{what}}<br>
+                lineTemplate: _.template("\
+                    {{who}}:{{what}}<br>\
                     "),
-                template: _.template("
-                    <div >
-                      <blockquote class='QuoteView'>
-                        {{part.who}}:{{part.said}}
-                        <small>{{meta}}</small>
-                        <small>{{loc}}</small>
-                      </blockquote>
-                    </div>
+                template: _.template("\
+                    <div>\
+                      <blockquote class='QuoteView'>\
+                        {{parts[0].who}}:{{parts[0].said}}\
+                        <small>{{meta}}</small>\
+                        <small>{{loc}}</small>\
+                      </blockquote>\
+                    </div>\
                     "),
                 render: function(){
                     $('#raw').html( this.template( this.model.toJSON() ) );
+                    return this;
+                }
+            });
+            
+            var EditableQuoteView = Parse.View.extend({
+                tagName: 'tr',
+                initialize: function(model){
+                    this.model = model || new Quote();
+                },
+                template: _.template('\
+                    <div>\
+                      <blockquote class="QuoteView">\
+                        <input type="text" placeholder="Who"><input type="text" placeholder="Said What...."><a class="btn btn-small btn-info">+</a><a class="btn btn-small btn-info">-</a><br>\
+                        <input type="text" placeholder="Where"><input type="text" placeholder="Other info">\
+                      </blockquote>\
+                    </div>\
+                    '),
+                render: function(){
+                    $(this.el).append( this.template(null) );
                     return this;
                 }
             });
@@ -89,7 +99,7 @@
                 initialize: function(){
                    
                 },
-                template: _.template(),
+                template: _.template('<div class="QuoteListView"></div>'),
                 render: function(){
                     var quoteList;
                     //this is scoped to current view
@@ -108,31 +118,31 @@
             var quotes = new Quotes(); //define instance of quotes Model
             
             window.app = new QuotesListView(); //instance of Quotes View
-            window.rawview = new RawView(); //instance of Quotes View
+
             app.el = $('#applicationMainView');
             
             quotes.fetch({
                 success: function(collection) {
                     app.model = collection;
                     app.render();
-
                 },
                 error: function(collection, error) {
                     console.error('The collection could not be retrieved.');
                 }
             });
 
-            
+            var newQuoteView = new EditableQuoteView({el:'#newQuoteView'}).render();
+
         //end of app
         });
         </script>
         <div id='applicationMainView'>
             <!-- some placeholder elements -->
+            <div id='newQuoteView'>
+                <a class='btn btn-large btn-info'>Add New Quote</a>
+            </div>
             <div></div>
             <div></div>
-            <div></div>
-        </div>
-        <div id="raw">
         </div>
     </body>
 </html>
