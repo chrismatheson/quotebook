@@ -10,7 +10,8 @@
         
         <script type="text/javascript" src="parse-1.0.20.js"></script>
         <link rel="stylesheet" href="bootstrap/css/bootstrap.css">
-
+        <link rel="stylesheet" href="bootstrap/css/bootstrap-responsive.css" >
+        
         <script src="bootstrap/js/bootstrap.js"></script>
         <script type="text/javascript">
             console.log("QuoteBook app started using : "+navigator.appName);
@@ -32,6 +33,85 @@
             _.templateSettings = {
                 interpolate : /\{\{(.+?)\}\}/g
             };
+            
+            
+            /**
+             * Define Views
+             */
+            var QuoteView = Parse.View.extend({
+                initialize: function(){
+                    this.model = this.model || new Quote();
+                    this.render();
+                    console.log('View created: QuoteView');
+                },
+                lineTemplate: _.template("\
+                    {{who}}:{{said}}<br>\
+                    "),
+                template: _.template("\
+                    <div>\
+                      <blockquote class='QuoteView'>\
+                        {{parts}}\
+                        <small>{{meta}}</small>\
+                        <small>{{loc}}</small>\
+                      </blockquote>\
+                    </div>\
+                    "),
+                render: function(){
+                    var modelJSON = this.model.toJSON();
+                    var renderedParts = "";
+                    for (i in modelJSON.parts){
+                        renderedParts += this.lineTemplate(modelJSON.parts[i]);
+                    }
+                    modelJSON.parts = renderedParts;
+                    var htmlView = this.template(modelJSON);
+                    $(this.el).append( htmlView );
+                    return htmlView;
+                },
+                model: null
+            });
+            
+            var EditableQuoteView = Parse.View.extend({
+                initialize: function(){
+                    this.model = this.model || new Quote();
+                    var quotes = this.model;
+                    console.log('View created: editablequoteview');
+                },
+                template: _.template('\
+                    <div class="QuoteView">\
+                        <input type="text" placeholder="Who"><input type="text" placeholder="Said What...."><a class="btn btn-small btn-info">+</a><a class="btn btn-small btn-info">-</a><br>\
+                        <input type="text" placeholder="Where"><input type="text" placeholder="Other info">\
+                    </div>\
+                    '),
+                render: function(){
+                    $(this.el).html( this.template(null) );
+                    return this;
+                },
+                model: null
+            });
+            
+            var QuotesListView = Parse.View.extend({
+                initialize: function(){
+                    this.model = this.model || new Quotes();
+                    var quotes = this.model;
+                    quotes.on("reset", function(aNewModel){
+                        console.log('Clearing QuotesListView.Model');
+                        $(this.el).empty
+                    });
+                    quotes.on("add", function(aNewModel){
+                        console.log('Added Item To QuotesListView.Model');
+                        console.log(aNewModel);
+                    }, this);
+                    quotes.on("remove", function(aNewModel){
+                        console.log('Removed Item From QuotesListView.Model');
+                    }, this);
+                    console.log('View created: QuoteListView');
+                },
+                render: function(){
+                    $(this.el).empty();
+                },
+                model: null
+            });
+            
             /**
              * Define models
              */
@@ -45,104 +125,64 @@
             }); //Define Quote as a subclass
                         
             var Quotes = Parse.Collection.extend({
-              model: Quote,
-              view: null
-            });
-            
-            /**
-             * Define Views
-             */
-            var QuoteView = Parse.View.extend({
-                tagName: 'tr',
-                initialize: function(model){
-                    this.model = model || new Quote();
-                },
-                lineTemplate: _.template("\
-                    {{who}}:{{what}}<br>\
-                    "),
-                template: _.template("\
-                    <div>\
-                      <blockquote class='QuoteView'>\
-                        {{parts[0].who}}:{{parts[0].said}}\
-                        <small>{{meta}}</small>\
-                        <small>{{loc}}</small>\
-                      </blockquote>\
-                    </div>\
-                    "),
-                render: function(){
-                    $('#raw').html( this.template( this.model.toJSON() ) );
-                    return this;
-                }
-            });
-            
-            var EditableQuoteView = Parse.View.extend({
-                tagName: 'tr',
-                initialize: function(model){
-                    this.model = model || new Quote();
-                },
-                template: _.template('\
-                    <div>\
-                      <blockquote class="QuoteView">\
-                        <input type="text" placeholder="Who"><input type="text" placeholder="Said What...."><a class="btn btn-small btn-info">+</a><a class="btn btn-small btn-info">-</a><br>\
-                        <input type="text" placeholder="Where"><input type="text" placeholder="Other info">\
-                      </blockquote>\
-                    </div>\
-                    '),
-                render: function(){
-                    $(this.el).append( this.template(null) );
-                    return this;
-                }
-            });
-            
-            var QuotesListView = Parse.View.extend({
-                el: $('#quoteList'),
-                initialize: function(){
-                   
-                },
-                template: _.template('<div class="QuoteListView"></div>'),
-                render: function(){
-                    var quoteList;
-                    //this is scoped to current view
-                    if(quoteList = this.model){
-                        var res = quoteList.each(function(item){
-                            var itemView = new QuoteView(item);
-                            return itemView.render();
-                        });
-                    }
-                }
+              initialize:function(){
+                this.fetch({
+                        success: function(collection) {
+                            //this is now 'window' object
+                            console.log('Data back from server');
+                        },
+                        error: function(collection, error) {
+                            console.error('The collection could not be retrieved.');
+                        }
+                    });
+              },
+              model: Quote
             });
             
             /**
              * start doing things
              */
-            var quotes = new Quotes(); //define instance of quotes Model
-            
-            window.app = new QuotesListView(); //instance of Quotes View
+             
+            /**
+             * create a top level object accessable after function has finished
+             * This object will act as the application 'controller' and will have 
+             * child references to the model and view.
+             */
+            window.app = {};
+            window.app.quotesListModel = new Quotes(); //define instance of quotes Model
 
-            app.el = $('#applicationMainView');
-            
-            quotes.fetch({
-                success: function(collection) {
-                    app.model = collection;
-                    app.render();
-                },
-                error: function(collection, error) {
-                    console.error('The collection could not be retrieved.');
-                }
+            //define a view for the quote list and attatch to DOM
+            window.app.mainListView = new QuotesListView({
+                el: '#mainListView',
+                model: window.app.quotesListModel                
             });
 
-            var newQuoteView = new EditableQuoteView({el:'#newQuoteView'}).render();
+            window.app.newQuoteView = new EditableQuoteView({
+                el:'#newQuoteView'
+            });
 
+            window.app.aQuote = new QuoteView({
+                el:'#singleQuoteView'
+            });
+            
+            Parse.Events.on();
+            console.log('Registered all event listeners');
         //end of app
         });
+        
         </script>
-        <div id='applicationMainView'>
-            <!-- some placeholder elements -->
-            <div id='newQuoteView'>
-                <a class='btn btn-large btn-info'>Add New Quote</a>
+        <div class="container-fluid">
+            <div class="row-fluid">
+                <div class="span2"></div>
+                <div id='applicationMainView' class="span10">
+                    <!-- some placeholder elements -->
+                    <div id='newQuoteView' class="row-fluid">
+                        <a class='btn btn-large btn-info'>Add New Quote</a>
+                    </div>
+                    <div id='mainListView' class="row-fluid"></div>
+                    <div id='singleQuoteView' class="row-fluid"></div>
+                </div>
             </div>
-            <div></div>
-            <div></div>
         </div>
     </body>
 </html>
