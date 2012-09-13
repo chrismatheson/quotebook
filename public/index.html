@@ -45,7 +45,7 @@
                     console.log('View created: QuoteView');
                 },
                 lineTemplate: _.template("\
-                    {{who}}:{{said}}<br>\
+                    <strong>{{who}}</strong>:{{said}}<br>\
                     "),
                 template: _.template("\
                     <div>\
@@ -57,12 +57,11 @@
                     </div>\
                     "),
                 render: function(){
+                    // TODO :  There must be a nicer way to do this.
                     var modelJSON = this.model.toJSON();
-                    var renderedParts = "";
-                    for (i in modelJSON.parts){
-                        renderedParts += this.lineTemplate(modelJSON.parts[i]);
-                    }
-                    modelJSON.parts = renderedParts;
+                    modelJSON.parts = _.reduce(modelJSON.parts, function(memo, part){
+                            return memo + this.lineTemplate(part); 
+                        }, "", this);
                     var htmlView = this.template(modelJSON);
                     $(this.el).append( htmlView );
                     return htmlView;
@@ -94,28 +93,42 @@
                     this.model = this.model || new Quotes();
                     var quotes = this.model;
                     quotes.on("reset", function(aNewModel){
+                        // Got data back from server
                         console.log('Clearing QuotesListView.Model');
-                        $(this.el).empty
-                    });
+                        this.render();
+                    }, this);
                     quotes.on("add", function(aNewModel){
+                        // Added data locally
+                        // Save off to Parse.com
                         console.log('Added Item To QuotesListView.Model');
                         console.log(aNewModel);
                     }, this);
                     quotes.on("remove", function(aNewModel){
+                        // Added data locally
+                        // Save off to Parse.com
                         console.log('Removed Item From QuotesListView.Model');
                     }, this);
                     console.log('View created: QuoteListView');
                 },
                 render: function(){
                     $(this.el).empty();
+                    this.subViews = [];
+                    for (i in this.model.models){
+                        var options = {
+                            el:this.el,
+                            model:this.model.models[i]
+                        }
+                        this.subViews.push(new QuoteView(options));
+                    }
                 },
-                model: null
+                model: null,
+                subViews: []
             });
             
             /**
              * Define models
              */
-            var Quote = Parse.Object.extend("Dev",{
+            var Quote = Parse.Object.extend("Quotes",{
                 defaults:{
                     className:'Quote',
                     loc:'a location',
