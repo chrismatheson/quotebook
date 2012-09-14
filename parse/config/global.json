@@ -1,0 +1,11 @@
+{
+    "applications": {
+        "QuoteBook": {
+            "applicationId": "eL5Zl4jRY6fUD3PcmbC6yObE3gSmdwfxShYmkOPi", 
+            "masterKey": "NO15ttf7q6tZdAqrAZhhCw5kwnSvZDr7V3hGUo4L"
+        }, 
+        "_default": {
+            "link": "QuoteBook"
+        }
+    }
+}
