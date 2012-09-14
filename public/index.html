@@ -2,7 +2,9 @@
 <html lang="en">
     <head>
         <meta http-equiv="Content-type" content="text/html; charset=utf-8">
-        <meta name = "viewport" content="width=device-width, initial-scale=0.75, user-scalable=no">
+        <meta name = "viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+        <meta name="apple-mobile-web-app-capable" content="yes" /> 
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" /> 
         <meta http-equiv="X-UA-Compatible" content="chrome=1">
         
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
@@ -44,17 +46,17 @@
                     this.render();
                     console.log('View created: QuoteView');
                 },
-                lineTemplate: _.template("\
+                lineTemplate: _.template('\
                     <strong>{{who}}</strong>:{{said}}<br>\
-                    "),
-                template: _.template("\
+                    '),
+                template: _.template('\
                     <div>\
-                      <blockquote class='QuoteView'>\
+                      <blockquote class="QuoteView">\
                         {{parts}}\
-                        <small><i class='icon-world'></i>{{loc}}, {{meta}}</small>\
+                        <small><i class="icon-globe">  </i>{{loc}}, {{meta}}</small>\
                       </blockquote>\
                     </div>\
-                    "),
+                    '),
                 render: function(){
                     // TODO :  There must be a nicer way to do this.
                     var modelJSON = this.model.toJSON();
@@ -68,25 +70,6 @@
                 model: null
             });
             
-            var EditableQuoteView = Parse.View.extend({
-                initialize: function(){
-                    this.model = this.model || new Quote();
-                    var quotes = this.model;
-                    console.log('View created: editablequoteview');
-                },
-                template: _.template('\
-                    <div class="QuoteView">\
-                        <input type="text" placeholder="Who"><input type="text" placeholder="Said What...."><a class="btn btn-small btn-info">+</a><a class="btn btn-small btn-info">-</a><br>\
-                        <input type="text" placeholder="Where"><input type="text" placeholder="Other info">\
-                    </div>\
-                    '),
-                render: function(){
-                    $(this.el).html( this.template(null) );
-                    return this;
-                },
-                model: null
-            });
-            
             var QuotesListView = Parse.View.extend({
                 initialize: function(){
                     this.model = this.model || new Quotes();
@@ -96,18 +79,6 @@
                         console.log('Clearing QuotesListView.Model');
                         this.render();
                     }, this);
-                    quotes.on("add", function(aNewModel){
-                        // Added data locally
-                        // Save off to Parse.com
-                        console.log('Added Item To QuotesListView.Model');
-                        console.log(aNewModel);
-                    }, this);
-                    quotes.on("remove", function(aNewModel){
-                        // Added data locally
-                        // Save off to Parse.com
-                        console.log('Removed Item From QuotesListView.Model');
-                    }, this);
-                    console.log('View created: QuoteListView');
                 },
                 render: function(){
                     $(this.el).empty();
@@ -139,11 +110,8 @@
             var Quotes = Parse.Collection.extend({
               initialize:function(){
                 this.fetch({
-                        success: function(collection) {
-                            //this is now 'window' object
-                            console.log('Data back from server');
-                        },
                         error: function(collection, error) {
+                            alert('Something went wrong! sorry.');
                             console.error('The collection could not be retrieved.');
                         }
                     });
@@ -168,31 +136,26 @@
                 el: '#mainListView',
                 model: window.app.quotesListModel                
             });
-
-            window.app.newQuoteView = new EditableQuoteView({
-                el:'#newQuoteView'
-            });
-
-            window.app.aQuote = new QuoteView({
-                el:'#singleQuoteView'
-            });
-            
-            Parse.Events.on();
             console.log('Registered all event listeners');
         //end of app
         });
         
         </script>
         <div class="container-fluid">
+            <div class="navbar navbar-static-top navbar-inverse">
+                <div class="navbar-inner">
+                    <a class="brand" href="#">MUSAC Quote Book</a>
+                    <ul class="nav">
+                        <li class="active"><a href="#">Home</a></li>
+                        <li><a href="AddQuote.html">Add Yours</a></li>
+                        <li><a href="#">Link</a></li>
+                    </ul>
+                </div>
+            </div>
             <div class="row-fluid">
                 <div class="span2"></div>
                 <div id='applicationMainView' class="span10">
-                    <!-- some placeholder elements -->
-                    <div id='newQuoteView' class="row-fluid">
-                        <a class='btn btn-large btn-info'>Add New Quote</a>
-                    </div>
-                    <div id='mainListView' class="row-fluid"></div>
-                    <div id='singleQuoteView' class="row-fluid"></div>
+                    <div id='mainListView' class="row-fluid"></div> 
                 </div>
             </div>
         </div>
