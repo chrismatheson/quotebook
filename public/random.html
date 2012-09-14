@@ -1,0 +1,38 @@
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+        <meta name = "viewport" content="width=device-width, initial-scale=0.75, user-scalable=no">
+        <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+        <script type="text/javascript" src="parse-1.0.23.js"></script>
+        <link rel="stylesheet" href="bootstrap/css/bootstrap.css">
+        <link rel="stylesheet" href="bootstrap/css/bootstrap-responsive.css" >
+        
+        <script src="bootstrap/js/bootstrap.js"></script>
+        <script type="text/javascript">
+            console.log("QuoteBook app started using : "+navigator.appName);
+            
+            if(navigator.appName == "Microsoft Internet Explorer"){
+                alert("This site does not run on IE.");
+                window.location="https://www.google.com/chrome/";
+            }
+        </script>
+
+    </head>
+    <body>
+        <script type="text/javascript">
+            Parse.initialize('eL5Zl4jRY6fUD3PcmbC6yObE3gSmdwfxShYmkOPi','jfokH6Oa1Cx1PENgS414NUtUPi5UypVTFfGuWQQp');
+
+            Parse.Cloud.run('random',{},
+            {
+                success:function(res){
+                    $('#result').html(res.toJSON());
+                },
+                error: function(error) {
+                }
+            });
+        </script>
+        <div id="result">
+        </div>
+    </body>
+</html>
