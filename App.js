@@ -32,6 +32,6 @@ app.configure('production', function(){
 app.listen(process.env.VCAP_APP_PORT || process.env.PORT || 80);
 
 app.get('/*', function(req, res, next){
-  console.log(req);
+  //console.log(req);
   next();
 });

@@ -1,7 +1,7 @@
 /*!
  * Parse JavaScript SDK
- * Version: 1.0.20
- * Built: Wed Aug 22 2012 17:40:25
+ * Version: 1.0.23
+ * Built: Sun Sep 09 2012 18:12:04
  * http://parse.com
  *
  * Copyright 2012 Parse, Inc.
@@ -13,7 +13,7 @@
  */
 (function(root) {
   root.Parse = root.Parse || {};
-  root.Parse.VERSION = "1.0.20";
+  root.Parse.VERSION = "1.0.23";
 }(this));
 
 
@@ -1352,9 +1352,10 @@
     if (route !== "classes" &&
         route !== "users" &&
         route !== "login" &&
+        route !== "functions" &&
         route !== "requestPasswordReset") {
-      throw "First argument must be one of classes, users, or login, not '" +
-          route + "'.";
+      throw "First argument must be one of classes, users, functions, or " +
+            "login, not '" + route + "'.";
     }
 
     var url = Parse.serverURL + "/1/" + route;
@@ -1406,14 +1407,19 @@
    * loop because we have circular references.  If <seenObjects>
    * is set, then none of the Parse Objects that are serialized can be dirty.
    */
-  Parse._encode = function(value, seenObjects) {
+  Parse._encode = function(value, seenObjects, disallowObjects) {
     var _ = Parse._;
     if (value instanceof Parse.Object) {
+      if (disallowObjects) {
+        throw "Parse.Objects not allowed here";
+      }
       if (!seenObjects || _.include(seenObjects, value) || !value._hasData) {
         return value._toPointer();
       } else if (!value.dirty()) {
         seenObjects = seenObjects.concat(value);
-        return Parse._encode(value._toFullJSON(seenObjects), seenObjects);
+        return Parse._encode(value._toFullJSON(seenObjects),
+                             seenObjects,
+                             disallowObjects);
       } else {
         throw "Can't fully embed a dirty object";
       }
@@ -1425,7 +1431,7 @@
       return value.toJSON();
     } else if (_.isArray(value)) {
       return _.map(value, function(x) {
-        return Parse._encode(x, seenObjects);
+        return Parse._encode(x, seenObjects, disallowObjects);
       });
     } else if (_.isRegExp(value)) {
       return value.source;
@@ -1436,7 +1442,7 @@
     } else if (value instanceof Object) {
       var output = {};
       Parse._each(value, function(v, k) {
-        output[k] = Parse._encode(v, seenObjects);
+        output[k] = Parse._encode(v, seenObjects, disallowObjects);
       });
       return output;
     } else {
@@ -1446,6 +1452,7 @@
 
   /**
    * The inverse function of Parse._encode.
+   * TODO: make decode not mutate value.
    */
   Parse._decode = function(key, value) {
     var _ = Parse._;
@@ -1501,8 +1508,10 @@
       relation.targetClassName = value.className;
       return relation;
     } else {
-      // Just some random JSON object.
-      return value;
+      Parse._each(value, function(v, k) {
+        value[k] = Parse._decode(k, v);
+      });
+     return value;
     }
   };
 
@@ -1721,6 +1730,12 @@
      * @constant
      */
     EXCEEDED_QUOTA: 140,
+
+    /**
+     * Error code indicating that a Cloud Code script failed.
+     * @constant
+     */
+    SCRIPT_FAILED: 141,
 
     /**
      * Error code indicating that the username is missing or empty.
@@ -3388,15 +3403,24 @@
      * the given object.
      */
     _finishFetch: function(serverData, hasData) {
+      // Clear out any changes the user might have made previously.
+      this._opSetQueue = [{}];
+
+      // Bring in all the new server data.
       this._mergeMagicFields(serverData);
       var self = this;
       Parse._each(serverData, function(value, key) {
         self._serverData[key] = Parse._decode(key, value);
       });
-      this._refreshCache();
-      this._hasData = hasData;
-      this._opSetQueue = [{}];
+
+      // Refresh the attributes.
       this._rebuildAllEstimatedData();
+
+      // Clear out the cache of mutable containers.
+      this._refreshCache();
+      this._opSetQueue = [{}];
+
+      this._hasData = hasData;
     },
 
     /**
@@ -4203,11 +4227,14 @@
     var NewClassObject = null;
     if (_.has(Parse.Object._classMap, className)) {
       var OldClassObject = Parse.Object._classMap[className];
+      // This new subclass has been told to extend both from "this" and from
+      // OldClassObject. This is multiple inheritance, which isn't supported.
+      // For now, let's just pick one.
       NewClassObject = OldClassObject._extend(protoProps, classProps);
     } else {
       protoProps = protoProps || {};
       protoProps.className = className;
-      NewClassObject = Parse.Object._extend(protoProps, classProps);
+      NewClassObject = this._extend(protoProps, classProps);
     }
     // Extending a subclass should reuse the classname automatically.
     NewClassObject.extend = function(arg0) {
@@ -5411,6 +5438,15 @@
      */
     setEmail: function(email, options) {
       return this.set("email", email, options);
+    },
+
+    /**
+     * Checks whether this user is the current user and has been authenticated.
+     * @return (Boolean) whether this user is the current user and is logged in.
+     */
+    authenticated: function() {
+      return !!this._sessionToken &&
+          (Parse.User.current() && Parse.User.current().id === this.id);
     }
 
   }, /** @lends Parse.User */ {
@@ -6329,17 +6365,26 @@
      * SDK to authenticate the user, and then automatically logs in (or
      * creates, in the case where it is a new user) a Parse.User.
      * 
-     * @param {String} permissions The permissions required for Facebook
+     * @param {String, Object} permissions The permissions required for Facebook
      *    log in.  This is a comma-separated string of permissions.
+     *    Alternatively, supply a Facebook authData object as described in our
+     *    REST API docs if you want to handle getting facebook auth tokens
+     *    yourself.
      * @param {Object} options Standard options object with success and error
      *    callbacks.
      */
     logIn: function(permissions, options) {
-      if (!initialized) {
-        throw "You must initialize FacebookUtils before calling logIn.";
+      if (!permissions || _.isString(permissions)) {
+        if (!initialized) {
+          throw "You must initialize FacebookUtils before calling logIn.";
+        }
+        requestedPermissions = permissions;
+        return Parse.User._logInWith("facebook", options);
+      } else {
+        var newOptions = _.clone(options);
+        newOptions.authData = permissions;
+        return Parse.User._logInWith("facebook", newOptions);
       }
-      requestedPermissions = permissions;
-      return Parse.User._logInWith("facebook", options);
     },
     
     /**
@@ -6349,17 +6394,26 @@
      *
      * @param {Parse.User} user User to link to Facebook. This must be the
      *     current user.
-     * @param {String} permissions The permissions required for Facebook
-     *    log in.  This is a comma-separated string of permissions.
+     * @param {String, Object} permissions The permissions required for Facebook
+     *    log in.  This is a comma-separated string of permissions. 
+     *    Alternatively, supply a Facebook authData object as described in our
+     *    REST API docs if you want to handle getting facebook auth tokens
+     *    yourself.
      * @param {Object} options Standard options object with success and error
      *    callbacks.
      */
     link: function(user, permissions, options) {
-      if (!initialized) {
-        throw "You must initialize FacebookUtils before calling link.";
+      if (!permissions || _.isString(permissions)) {
+        if (!initialized) {
+          throw "You must initialize FacebookUtils before calling link.";
+        }
+        requestedPermissions = permissions;
+        return user._linkWith("facebook", options);
+      } else {
+        var newOptions = _.clone(options);
+        newOptions.authData = permissions;
+        return user._linkWith("facebook", newOptions);
       }
-      requestedPermissions = permissions;
-      return user._linkWith("facebook", options);
     },
     
     /**
@@ -6761,4 +6815,62 @@
    * @return {Class} A new subclass of <code>Parse.Router</code>.
    */
   Parse.Router.extend = Parse._extend;
+}(this));
+(function(root) {
+  root.Parse = root.Parse || {};
+  var Parse = root.Parse;
+  var _ = Parse._;
+
+  /**
+   *
+   * <p>
+   * An Object that is used to call Cloud Functions.  A Cloud Function can be
+   * called with Parse.Cloud.run.
+   * </p>
+   */
+  Parse.Cloud = {
+    /**
+     * Makes a call to a cloud function.
+     * @param {String} name The function name.
+     * @param {Object} data The parameters to send to the cloud function.
+     * @param {Object} options A Backbone-style options object
+     * options.success, if set, should be a function to handle a successful
+     * call to a cloud function.  options.error should be a function that
+     * handles an error running the cloud function.  Both functions are
+     * optional.  Both functions take a single argument.
+     */
+    run: function(name, data, options) {
+      var oldOptions = options;
+      var newOptions = _.clone(options);
+      newOptions.success = function(resp) {
+        var results = Parse._decode(null, resp);
+        if (oldOptions.success) {
+          oldOptions.success(results.result);
+        }
+      };
+      
+      newOptions.error = Parse.Cloud._wrapError(oldOptions.error, options);
+      Parse._request("functions",
+                     name,
+                     null,
+                     'POST',
+                     Parse._encode(data, null, true),
+                     newOptions);
+    },
+
+    _wrapError: function(onError, options) {
+      return function(response) {
+        if (onError) {
+          var error = new Parse.Error(-1, response.responseText);
+          if (response.responseText) {
+            var errorJSON = JSON.parse(response.responseText);
+            if (errorJSON) {
+              error = new Parse.Error(errorJSON.code, errorJSON.error);
+            }
+          }
+          onError(error, options);
+        }
+      };
+    }
+  };
 }(this));
