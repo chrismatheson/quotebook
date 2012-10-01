@@ -6,9 +6,9 @@
         <meta http-equiv="X-UA-Compatible" content="chrome=1">
         
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-        <script src="http://ajax.cdnjs.com/ajax/libs/underscore.js/1.1.6/underscore-min.js"></script>
+        <script src="https://ajax.cdnjs.com/ajax/libs/underscore.js/1.1.6/underscore-min.js"></script>
         
-        <script type="text/javascript" src="parse-1.0.20.js"></script>
+        <script type="text/javascript" src="parse-1.0.23.js"></script>
         <link rel="stylesheet" href="bootstrap/css/bootstrap.css">
         <link rel="stylesheet" href="bootstrap/css/bootstrap-responsive.css" >
         
@@ -25,69 +25,119 @@
     </head>
 
     <body>
-        <script type="text/javascript" charset="utf-8">
+        <div class="navbar navbar-fixed-top navbar-inverse">
+            <div class="navbar-inner">
+                <div class="container-fluid">
+                    <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </a>
+                    <a class="brand" href="#">MUSAC Quote Book</a>
+                    <div class="nav-collapse">
+                        <ul class="nav">
+                            <li><a href="index.html">Home</a></li>
+                            <li class="active"><a href="AddQuote.html">Add Yours</a></li>
+                            <li><a href="#">Link</a></li>    
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br/><br/><br/>
+        <div class="container-fluid">
             
-            var EditableQuoteView = Parse.View.extend({
-                initialize: function(){
-                    this.model = this.model || new Quote();
-                    var quotes = this.model;
-                    this.render();
-                    console.log('View created: editablequoteview');
-                },
-                template: _.template('\
-                    <div class="QuoteView">\
-                        <input type="text" placeholder="Who"><input type="text" placeholder="Said What...."><a class="btn btn-small btn-info">+</a><a class="btn btn-small btn-info">-</a><br>\
-                        <input type="text" placeholder="Where"><input type="text" placeholder="Other info">\
-                    </div>\
-                    '),
-                render: function(){
-                    $(this.el).html( this.template() );
-                    return this;
-                },
-                model: null
-            });
+            <div class="row-fluid">
+                <div class="span2"></div>
+                <div id='applicationMainView' class="span10">
+                    <div>Temp Text</div>
+                </div>
+            </div>
+        </div>
+        
+        <script type="text/javascript" charset="utf-8">
+            Parse.initialize('eL5Zl4jRY6fUD3PcmbC6yObE3gSmdwfxShYmkOPi','jfokH6Oa1Cx1PENgS414NUtUPi5UypVTFfGuWQQp');
+            
+            _.templateSettings = {
+                interpolate : /\{\{(.+?)\}\}/g
+            };
             
             /**
              * Define models
              */
-            var Quote = Parse.Object.extend("Quotes",{
+            // Change to extend "Quotes" before pushing to master
+            var Quote = Parse.Object.extend("Dev",{
                 defaults:{
                     className:'Quote',
                     loc:'a location',
                     meta:'some data',
-                    parts:[{"said":"something","who":"person"}]
+                    parts:[{"said":"something","who":"person"},{"said":"something","who":"person"}]
                 }
             }); 
+            
+            var EditableQuoteView = Parse.View.extend({
+                initialize: function(){
+                    this.model = this.model || new Quote();
+                    this.render();
+                    this.model.on('change', function(){
+                        this.render();
+                    }, this);
+                },
+                partTemplate: _.template('\
+                    <div class="controls controls-row">\
+                    <input class="span2 who" type="text" placeholder="Who"></input>\
+                    <input class="span4 said input-xxlarge" type="text" placeholder="Said What...."></input>\
+                    </div>\
+                '),
+                template: _.template('\
+                    <div class="controls">\
+                        {{parts}}\
+                        <div class="controls controls-row">\
+                            <a id="more" class="btn" type="button">more<a>\
+                        </div>\
+                        <input class="span3 input-xlarge" type="text" placeholder="Where">\
+                        <input class="span3 input-xlarge" type="text" placeholder="{{meta}}">\
+                    </div>\
+                    <div class="form-actions">\
+                        <button id="submit" type="submit" class="btn btn-primary">Submit</button>\
+                        <button type="button" class="btn">Cancel</button>\
+                    </div>\
+                    '),
+                render: function(){
+                    // TODO :  There must be a nicer way to do this.
+                    var modelJSON = this.model.toJSON();
+                    modelJSON.parts = _.reduce(modelJSON.parts, function(memo, part){
+                            return memo + this.partTemplate(part); 
+                        }, "", this);
+                    this.$el.html(this.template(modelJSON));
+                    //Todo sort out binding of events better.
+                    this.$el.find('#more').click(function(event){
+                        console.log(event);
+                        var parts = null;
+                        var parts = window.app.mainView.model.get('parts');
+                        parts.push({'said':'something','who':'person'});
+                        window.app.mainView.model.set('parts',parts);
+                    });
+                    this.on('click #submit', function(event){
+                        window.open('index.html', '_self');
+                    });
+                },
+                model: null
+            })
             
             /**
              * start doing things
              */
             
             window.app = {};
-            window.app.newQuote = new Quote();
             window.app.mainView = new EditableQuoteView({
-                el: '#applicationMainView',
-                model: window.app.newQuote
+                el:$('#applicationMainView'),
+                id:'#applicationMainView',
+                tagName:'div',
+                className:'span10',
+                model:new Quote({meta:'some metadata'})
             });
             
         </script>
-        <div class="container-fluid">
-            <div class="navbar navbar-static-top navbar-inverse">
-                <div class="navbar-inner">
-                    <a class="brand" href="#">MUSAC Quote Book</a>
-                    <ul class="nav">
-                        <li><a href="index.html">Home</a></li>
-                        <li class="active"><a href="#">Add Yours</a></li>
-                        <li><a href="#">Link</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="row-fluid">
-                <div class="span2"></div>
-                <div id='applicationMainView' class="span10">
-                    
-                </div>
-            </div>
-        </div>
     </body>
 </html>
