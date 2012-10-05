@@ -26,9 +26,10 @@
             Parse.Cloud.run('random',{},
             {
                 success:function(res){
-                    $('#result').html(res.toJSON());
+                    console.log(res);
                 },
                 error: function(error) {
+                    console.log(error);
                 }
             });
         </script>

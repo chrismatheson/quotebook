@@ -57,6 +57,7 @@
         
         <script type="text/javascript" charset="utf-8">
             Parse.initialize('eL5Zl4jRY6fUD3PcmbC6yObE3gSmdwfxShYmkOPi','jfokH6Oa1Cx1PENgS414NUtUPi5UypVTFfGuWQQp');
+            // dev - Parse.initialize('sFVZVC9XAlJtXFQ0IDdO9ESOKX9i2Z0MAaz59zMV','AXKYHEZFlBzweGVeOZtzVKQ1LSPxF96j5ymHeMCY');
             
             _.templateSettings = {
                 interpolate : /\{\{(.+?)\}\}/g
@@ -68,20 +69,37 @@
             // Change to extend "Quotes" before pushing to master
             var Quote = Parse.Object.extend("Dev",{
                 defaults:{
-                    className:'Quote',
-                    loc:'a location',
-                    meta:'some data',
-                    parts:[{"said":"something","who":"person"},{"said":"something","who":"person"}]
+                    loc:null,
+                    meta:null,
+                    parts:[{"said":"","who":""},{"said":"","who":""}]
                 }
             }); 
             
             var EditableQuoteView = Parse.View.extend({
                 initialize: function(){
                     this.model = this.model || new Quote();
+                    
+                    // Sync offline created quotes
+                    var cachedQuotes = new Array( JSON.parse( localStorage.cache ) );
+                    if ( navigator.onLine ) {
+                        _.each(cachedQuotes, function(quote){
+                            console.log(quote);
+                        });
+                    }
+                    
                     this.render();
                     this.model.on('change', function(){
                         this.render();
                     }, this);
+                },
+                events:{
+                    'click #submit': 'submit',
+                    'click #more':'addpart',
+                    'change :input': function(event){
+                        console.log('changed something');
+                        console.log(event);
+                    },
+                    'change':'render'
                 },
                 partTemplate: _.template('\
                     <div class="controls controls-row">\
@@ -102,7 +120,7 @@
                         <button id="submit" type="submit" class="btn btn-primary">Submit</button>\
                         <button type="button" class="btn">Cancel</button>\
                     </div>\
-                    '),
+                '),
                 render: function(){
                     // TODO :  There must be a nicer way to do this.
                     var modelJSON = this.model.toJSON();
@@ -110,24 +128,52 @@
                             return memo + this.partTemplate(part); 
                         }, "", this);
                     this.$el.html(this.template(modelJSON));
+                },
+                addpart:function(){
                     //Todo sort out binding of events better.
-                    this.$el.find('#more').click(function(event){
-                        console.log(event);
-                        var parts = null;
-                        var parts = window.app.mainView.model.get('parts');
-                        parts.push({'said':'something','who':'person'});
-                        window.app.mainView.model.set('parts',parts);
-                    });
-                    this.on('click #submit', function(event){
-                        window.open('index.html', '_self');
+                    var parts = null;
+                    var parts = window.app.mainView.model.get('parts');
+                    parts.push({'said':'something','who':'person'});
+                    this.model.set('parts',parts);
+                },
+                submit: function(){
+                    //send back to parse.com db
+                    this.model.save(null, {
+                        success: function(quote) {
+                            // The object was saved successfully.
+                        },
+                        error: function(quote, error) {
+                            // The save failed.
+                            // save the quote localy and re-send later.
+                            var cachedQuotes = new Array( JSON.parse( localStorage.cache ) );
+                            cachedQuotes.push(quote);
+                            localStorage.cache = JSON.stringify( cachedQuotes );
+                        }
                     });
                 },
                 model: null
             })
             
             /**
+             * Testing functions
+             */
+             
+            function storeQuote(){
+                var cachedQuotes = new Array( JSON.parse( localStorage.cache ) );
+                cachedQuotes.push(new Quote({
+                    loc:'',
+                    meta:'added To local Storage',
+                    parts:[]
+                }));
+                localStorage.cache = JSON.stringify( cachedQuotes );
+            }
+            
+            
+            
+            /**
              * start doing things
              */
+            if(!localStorage.cache) localStorage.cache = "[]";
             
             window.app = {};
             window.app.mainView = new EditableQuoteView({

@@ -12,7 +12,6 @@ Parse.Cloud.define("random", function(request, response) {
 		initialize:function(){
 			this.fetch({
 				success: function(collection) {
-					//this is now 'window' object
 					console.log('Data back from server');
 				},
 				error: function(collection, error) {
@@ -25,14 +24,11 @@ Parse.Cloud.define("random", function(request, response) {
 
 	var Quote = Parse.Object.extend("Quotes",{
 		defaults:{
-			className:'Quote',
 			loc:'a location',
 			meta:'some data',
 			parts:[{"said":"something","who":"person"},{"said":"something else","who":"another person"}]
 		}
 	});
-
-	var quotes =  new Quotes();
-
-  response.success(quotes.models[Math.random(quotes.models.length)]);
+    
+  response.success(new Quotes());
 });
